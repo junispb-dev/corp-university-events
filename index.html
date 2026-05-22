@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Мероприятия Корпоративного университета</title>
+</head>
+<body>
+<div id="spectrum-events-root"></div>
+<style>
+  :root {
+    --sp-text-main: #040503;
+    --sp-bg: #ffffff;
+    --sp-accent-main: #2c5545;
+    --sp-accent-soft: #66ad92;
+    --sp-accent-light: #d1e8e0;
+    --sp-border: #e6e7e6;
+    --sp-muted: #666666;
+    --sp-tag-bg: #f4f6f5;
+  }
+
+  #spectrum-events-root {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--sp-text-main);
+    background: var(--sp-bg);
+    padding: 40px 16px 56px;
+    box-sizing: border-box;
+  }
+
+  .sp-page { max-width: 1160px; margin: 0 auto; }
+
+  .sp-header {
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--sp-border);
+  }
+
+  .sp-title {
+    font-size: 26px;
+    font-weight: 600;
+    margin: 0 0 8px;
+    color: var(--sp-text-main);
+  }
+
+  .sp-subtitle {
+    font-size: 14px;
+    color: var(--sp-muted);
+    max-width: 580px;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .sp-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 28px;
+    font-size: 13px;
+  }
+
+  .sp-filters label { color: var(--sp-muted); white-space: nowrap; }
+
+  .sp-filters select {
+    border: 1px solid var(--sp-border);
+    border-radius: 0;
+    padding: 5px 10px;
+    font-size: 13px;
+    background: #ffffff;
+    color: var(--sp-text-main);
+    outline: none;
+    min-width: 120px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+
+  .sp-filters select:focus,
+  .sp-filters select:hover { border-color: var(--sp-accent-main); }
+
+  .sp-filters-sep {
+    width: 1px;
+    height: 18px;
+    background: var(--sp-border);
+    margin: 0 4px;
+  }
+
+  .sp-section { margin-top: 32px; }
+
+  .sp-section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--sp-accent-light);
+  }
+
+  .sp-section-title {
+    font-size: 15px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--sp-accent-main);
+    margin: 0;
+  }
+
+  .sp-section-count { font-size: 12px; color: var(--sp-muted); }
+
+  .sp-events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 18px;
+  }
+
+  .sp-empty {
+    font-size: 13px;
+    color: var(--sp-muted);
+    padding: 6px 0 0;
+    font-style: italic;
+  }
+
+  /* Карточка */
+  .sp-card {
+    background: #ffffff;
+    border-radius: 0;
+    border: 1px solid var(--sp-border);
+    box-shadow: 0 8px 26px rgba(0,0,0,0.02);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    transition: transform 0.18s ease-out, box-shadow 0.18s ease-out, border-color 0.18s ease-out;
+  }
+
+  .sp-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.04);
+    border-color: rgba(44,85,69,0.5);
+  }
+
+  .sp-card-cover {
+    position: relative;
+    height: 140px;
+    overflow: hidden;
+    background-color: #e6e7e6;
+    background-size: cover;
+    background-position: center;
+  }
+
+  .sp-card-cover-bg { display: none; }
+
+  .sp-card-cover-completed::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(150,150,150,0.55);
+  }
+
+  .sp-status-pill {
+    position: absolute;
+    top: 12px;
+    left: 18px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: rgba(4,5,3,0.65);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .sp-status-pill-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: #a1ca3a;
+  }
+
+  .sp-status-pill-completed .sp-status-pill-dot { background: #999999; }
+
+  .sp-card-overlay-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  .sp-card-overlay-label span {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(4,5,3,0.8);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .sp-card-body {
+    padding: 12px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .sp-card-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: #2c5545;
+    line-height: 1.3;
+    margin-bottom: 4px;
+  }
+
+  .sp-tags-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 11px;
+    text-transform: uppercase;
+  }
+
+  .sp-tag {
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--sp-tag-bg);
+    color: var(--sp-muted);
+    letter-spacing: 0.04em;
+  }
+
+  .sp-datetime-place {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 13px;
+    color: var(--sp-text-main);
+  }
+
+  .sp-audience { font-size: 12px; color: var(--sp-muted); }
+
+  .sp-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid var(--sp-border);
+    font-size: 12px;
+    color: var(--sp-muted);
+  }
+
+  .sp-speaker {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sp-more { color: var(--sp-accent-main); font-weight: 500; }
+  .sp-more::after { content: "→"; margin-left: 4px; font-size: 11px; }
+
+  /* Модальное окно */
+  .sp-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.38);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 16px;
+  }
+
+  .sp-modal-backdrop.active { display: flex; }
+
+  .sp-modal {
+    background: #ffffff;
+    border-radius: 0;
+    max-width: 640px;
+    width: 100%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    overflow: hidden;
+    border: 1px solid var(--sp-border);
+  }
+
+  .sp-modal-header {
+    padding: 16px 20px 10px;
+    border-bottom: 1px solid var(--sp-border);
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .sp-modal-title { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+  .sp-modal-sub { font-size: 13px; color: var(--sp-muted); }
+
+  .sp-modal-close {
+    margin-left: auto;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 18px;
+    color: var(--sp-muted);
+  }
+
+  .sp-modal-body {
+    padding: 10px 20px 14px;
+    font-size: 14px;
+    overflow-y: auto;
+  }
+
+  .sp-modal-section-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--sp-muted);
+    margin-top: 10px;
+    margin-bottom: 4px;
+  }
+
+  .sp-modal-footer {
+    padding: 10px 20px 14px;
+    border-top: 1px solid var(--sp-border);
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .sp-btn {
+    border-radius: 999px;
+    border: 1px solid var(--sp-border);
+    padding: 6px 14px;
+    font-size: 13px;
+    background: #ffffff;
+    cursor: pointer;
+  }
+
+  .sp-btn:hover { border-color: var(--sp-accent-main); }
+  .sp-status-line { font-size: 12px; color: var(--sp-muted); margin-bottom: 4px; }
+
+  @media (max-width: 640px) {
+    .sp-events-grid { grid-template-columns: 1fr; }
+    .sp-card-cover { height: 130px; }
+  }
+</style>
+<script>
+  (function() {
+
+    // ===== 1. ДАННЫЕ МЕРОПРИЯТИЙ =====
+    // ЭТО ЕДИНСТВЕННОЕ МЕСТО, ГДЕ НУЖНО ЧТО-ТО ПРАВИТЬ.
+    const spectrumEvents = [
+      {
+        id: "procurement-rules-2026",
+        title: "Новые правила в процессе закупок 2026",
+        type: "Вебинар",
+        format: "Онлайн",
+        dateStart: "2026-03-05T11:00:00+03:00",
+        dateEnd: "2026-03-05T12:30:00+03:00",
+        place: "Онлайн-платформа ГК «Спектрум»",
+        audience: "Координаторы и ассистенты проектов",
+        speaker: "Шубников Алексей",
+        description: "Ключевые изменения в процессах закупок в 2026 году, новые требования и практические рекомендации по адаптации внутренних процедур.",
+        imageUrl: "zakupki.png"
+      },
+{
+  id: "modern-data-centers-2026",
+  title: "Современные ЦОД – от основ до специализации",
+  type: "Вебинар",
+  format: "Онлайн",
+  dateStart: "2026-05-28T10:00:00+03:00",
+  dateEnd: "2026-05-28T11:30:00+03:00",
+  place: "Онлайн-платформа ГК «Спектрум»",
+  audience: "Сотрудники БЮ «Консультирование»",
+  speaker: "Уточняется",
+  description: "Обзор современного ландшафта дата-центров: типы ЦОД (enterprise, colocation, hyperscale, edge), базовые принципы архитектуры и ключевые отраслевые стандарты надёжности (Tier I–IV, TIA-942, EN 50600). Поговорим о том, как меняются требования к ЦОД под влиянием облаков и AI/ML‑нагрузок, зачем бизнесу разные классы отказоустойчивости и как это влияет на CAPEX и OPEX. Разберём основные инженерные подсистемы (электроснабжение, охлаждение, ИБП, системы мониторинга и DCIM), а также варианты масштабирования — от традиционных залов до модульных и edge‑решений.",
+  imageUrl: "data-center.png",
+},
+{
+  id: "remarks-regulation-2026",
+  title: "Регламент отработки замечаний к проектной документации",
+  type: "Вебинар",
+  format: "Онлайн",
+  dateStart: "2026-05-21T11:00:00+03:00",
+  dateEnd: "2026-05-21T12:30:00+03:00",
+  place: "Онлайн-платформа ГК «Спектрум»",
+  audience: "Менеджеры проектов, ГИПы, координаторы и ассистенты проектов",
+  speaker: "Кочнов Вячеслав и Шагина Екатерина",
+  description: "Внедрение нового корпоративного стандарта отработки замечаний к проектной документации. Разберём единый алгоритм из 5 шагов — от регистрации замечания до официального закрытия, зоны ответственности участников и правила работы через реестр. Цель — закрывать замечания с первого раза, сдавать работы вовремя и видеть проблемные зоны по всему портфелю.",
+  imageUrl: "zamechaniya.png",
+},
+{
+  id: "tz-sk-calculation-2026",
+  title: "Расчёт ТехЗак и СтройКонтроль для коммерческого договора по методикам Минстроя №297/пр и 468п",
+  type: "Вебинар",
+  format: "Онлайн",
+  dateStart: "2026-05-14T10:00:00+03:00",
+  dateEnd: "2026-05-14T11:30:00+03:00",
+  place: "Онлайн-платформа ГК «Спектрум»",
+  audience: "Сотрудники ОРКК,руководители проектов, а также директора БЮ",
+  speaker: "Абрамова Елена и Федорова Марина",
+  description: "Вебинар о том, как формируется расчёт стоимости услуг технического заказчика и строительного контроля по методикам Минстроя №297/пр и №468п в сравнении с коммерческой стоимостью. Участники разберут структуру методологии, влияние исходных параметров и раздела ПОС на итоговый расчёт, а также практический кейс крупного проекта, чтобы лучше понимать, как использовать нормативный расчёт как аргумент в работе с бюджетом, договорной моделью и внутренними решениями.",
+  imageUrl: "tz-sk.png"
+},
+{
+  "id": "resilience-webinar-2026",
+  "title": "Резильентность: как управлять собой и командой в условиях стресса",
+  "type": "Вебинар",
+  "format": "Онлайн",
+  "dateStart": "2026-04-18T12:00:00+03:00",
+  "dateEnd": "2026-04-18T14:00:00+03:00",
+  "place": "Онлайн",
+  "audience": "Все желающие",
+  "speaker": "Шемякин Александр ",
+  "description": "Разбор понятия резильентности и ее отличий от стрессоустойчивости. Обсуждение 4 ключевых компонентов резильентности, влияния лидера на стресс команды и 5 стратегий корпоративной устойчивости для работы в условиях неопределенности.",
+  "imageUrl": "resilience.png"
+},
+{
+  id: "correct-termination-2026",
+  title: "Ничего личного. Корректное расторжение трудовых отношений",
+  type: "Семинар-практикум",
+  format: "Онлайн",
+  dateStart: "2026-04-22T10:30:00+03:00",
+  dateEnd: "2026-04-22T12:00:00+03:00",
+  place: "Онлайн-платформа ГК «Спектрум»",
+  audience: "Руководители",
+  speaker: "эксперты HR департамента и Юридической службы",
+  description: "Семинар-практикум о корректном расторжении трудовых отношений: варианты и алгоритм увольнений, роль руководителя, работа с токсичными сотрудниками, техники проведения увольнений, риски трудовых споров. Разбор реальных кейсов. Бонус: практическая памятка-методичка по алгоритму увольнений.",
+  imageUrl: "termination.png"
+},
+      {
+        id: "boq-ai-manager",
+        title: "BOQ AI Manager",
+        type: "Вебинар",
+        format: "Онлайн",
+        dateStart: "2026-04-17T11:00:00+03:00",
+        dateEnd: null,
+        place: "Онлайн-платформа ГК «Спектрум»",
+        audience: "Проектировщики",
+        speaker: "Решетняков Дмитрий",
+        description: "Практический вебинар о том, как использовать BOQ AI Manager для автоматизации расчётов и снижения ошибок в спецификациях.",
+        imageUrl: "boq-ai-manager.png"
+      },
+      {
+        id: "industrial-real-estate-nsk",
+        title: "5 неочевидных фактов о Промышленной недвижимости",
+        type: "Встреча",
+        format: "Очно",
+        dateStart: "2026-03-19T18:00:00+07:00",
+        dateEnd: null,
+        place: "Офис ГК «Спектрум», Новосибирск",
+        audience: "Все желающие",
+        speaker: "Вишневский Андрей",
+        description: "Обсуждаем тренды и кейсы в секторе промышленной недвижимости: риски, возможности и практические выводы для участников рынка.",
+        imageUrl: "Promyshlennaia-nedvizhimost.png"
+      },
+      {
+        id: "difficult-negotiations-art",
+        title: "Искусство сложных переговоров",
+        type: "Тренинг",
+        format: "Очно",
+        dateStart: "2026-03-27T10:00:00+03:00",
+        dateEnd: "2026-03-28T18:00:00+03:00",
+        place: "«ПетроКонгресс»,ул.Лодейнопольская, д.5, Лит.А,Санкт-Петербург ",
+        audience: "Группа инженеров-технологов",
+        speaker: "Левицкий Тимофей",
+        description: "Двухдневный интенсив по ведению сложных переговоров: работа с давлением, манипуляциями и выстраиванием долгосрочных отношений.",
+        imageUrl: "peregovory.png"
+      },
+      {
+        id: "difficult-negotiations-art",
+        title: "Excel‑дашборды без кода: новый стандарт ДАП",
+        type: "Вебинар",
+        format: "Онлайн",
+        dateStart: "2026-03-26T11:00:00+03:00",
+        dateEnd: null,
+        place: "Онлайн-платформа ГК «Спектрум",
+        audience: "БН-Консультирование",
+        speaker: "Голодяевский Михаил ",
+        description: "На этом обучающем вебинаре мы разберём, как с нуля настроить и использовать стандартный механизм создания дашбордов и визуализаций в Excel без дополнительного ПО и плагинов, встроенный в реестр ДАП, чтобы вы могли быстрее и нагляднее готовить управленческую отчётность.",
+        imageUrl: "dashbord_2.png"
+      }
+    ];
+
+    // ===== 2. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
+    function parseDate(value) {
+      if (!value) return null;
+      const d = new Date(value);
+      return isNaN(d.getTime()) ? null : d;
+    }
+
+    function formatDateRange(startStr, endStr) {
+      const locale = "ru-RU";
+      const start = parseDate(startStr);
+      const end = parseDate(endStr);
+      if (!start && !end) return "";
+      const dateOpts = { day: "numeric", month: "long", year: "numeric" };
+      const timeOpts = { hour: "2-digit", minute: "2-digit" };
+      if (start && end) {
+        const sameDay = start.toDateString() === end.toDateString();
+        if (sameDay) return start.toLocaleDateString(locale, dateOpts) + ", " + start.toLocaleTimeString(locale, timeOpts) + "–" + end.toLocaleTimeString(locale, timeOpts);
+        else return start.toLocaleDateString(locale, dateOpts) + " – " + end.toLocaleDateString(locale, dateOpts);
+      }
+      if (start && !end) return start.toLocaleDateString(locale, dateOpts) + ", " + start.toLocaleTimeString(locale, timeOpts);
+      return "";
+    }
+
+    function isCompleted(ev) {
+      const now = new Date();
+      const end = parseDate(ev.dateEnd) || parseDate(ev.dateStart);
+      if (!end) return false;
+      return end.getTime() < now.getTime();
+    }
+
+    function getCoverClass(ev) {
+      const t = ev.type.toLowerCase();
+      if (t.includes("вебинар")) return "sp-card-cover-webinar";
+      if (t.includes("тренинг")) return "sp-card-cover-training";
+      if (t.includes("встреча")) return "sp-card-cover-event";
+      return "";
+    }
+
+    function getYearMonth(ev) {
+      const d = parseDate(ev.dateStart) || parseDate(ev.dateEnd);
+      if (!d) return null;
+      return { year: d.getFullYear(), month: d.getMonth() + 1 };
+    }
+
+    function buildFiltersData(events) {
+      const years = new Set();
+      const monthsByYear = {};
+      events.forEach(ev => {
+        const ym = getYearMonth(ev);
+        if (!ym) return;
+        years.add(ym.year);
+        if (!monthsByYear[ym.year]) monthsByYear[ym.year] = new Set();
+        monthsByYear[ym.year].add(ym.month);
+      });
+      const yearsArr = Array.from(years).sort((a, b) => a - b);
+      const monthsMap = {};
+      yearsArr.forEach(y => { monthsMap[y] = Array.from(monthsByYear[y]).sort((a, b) => a - b); });
+      return { years: yearsArr, months: monthsMap };
+    }
+
+    function monthName(num) {
+      const names = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+      return names[num - 1];
+    }
+    // ===== 3. РАЗМЕТКА И ФИЛЬТРЫ =====
+    const root = document.getElementById("spectrum-events-root");
+    const filtersData = buildFiltersData(spectrumEvents);
+    let currentYear = null;
+    let currentMonth = null;
+
+    function createLayout() {
+      root.innerHTML = `
+        <div class="sp-page">
+          <div class="sp-header">
+            <div class="sp-title">Мероприятия Корпоративного университета ГК «Спектрум»</div>
+            <div class="sp-subtitle">Вебинары, тренинги и очные программы для сотрудников и партнеров. Используйте фильтры по году и месяцу, чтобы посмотреть актуальные и прошедшие события.</div>
+          </div>
+          <div class="sp-filters" id="sp-filters-row">
+            <abel for="sp-year-select">Год:</label>
+            <select id="sp-year-select"></select>
+            <abel for="sp-month-select">Месяц:</label>
+            <select id="sp-month-select"></select>
+            <div class="sp-filters-sep"></div>
+            <span style="font-size:12px;color:var(--sp-muted)">Показаны только мероприятия, дата которых указана в карточке.</span>
+          </div>
+          <div class="sp-section">
+            <div class="sp-section-header">
+              <div class="sp-section-title">Предстоящие мероприятия</div>
+              <span class="sp-section-count" id="sp-upcoming-count"></span>
+            </div>
+            <div class="sp-events-grid" id="sp-upcoming-grid"></div>
+            <div class="sp-empty" id="sp-upcoming-empty" style="display:none;">В выбранном периоде нет предстоящих мероприятий.</div>
+          </div>
+          <div class="sp-section">
+            <div class="sp-section-header">
+              <div class="sp-section-title">Завершённые мероприятия</div>
+              <span class="sp-section-count" id="sp-past-count"></span>
+            </div>
+            <div class="sp-events-grid" id="sp-past-grid"></div>
+            <div class="sp-empty" id="sp-past-empty" style="display:none;">В выбранном периоде нет завершённых мероприятий.</div>
+          </div>
+          <div class="sp-modal-backdrop" id="sp-modal-backdrop" aria-hidden="true">
+            <div class="sp-modal" role="dialog" aria-modal="true">
+              <div class="sp-modal-header">
+                <div>
+                  <div class="sp-modal-title" id="sp-modal-title"></div>
+                  <div class="sp-modal-sub" id="sp-modal-sub"></div>
+                </div>
+                <button class="sp-modal-close" id="sp-modal-close" aria-label="Закрыть">✕</button>
+              </div>
+              <div class="sp-modal-body" id="sp-modal-body"></div>
+              <div class="sp-modal-footer">
+                <button class="sp-btn" id="sp-modal-close-btn">Закрыть</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function fillFilters() {
+      const yearSelect = document.getElementById("sp-year-select");
+      const monthSelect = document.getElementById("sp-month-select");
+      yearSelect.innerHTML = `<option value="">Все годы</option>`;
+      filtersData.years.forEach(y => {
+        const opt = document.createElement("option");
+        opt.value = String(y);
+        opt.textContent = y;
+        yearSelect.appendChild(opt);
+      });
+      monthSelect.innerHTML = `<option value="">Все месяцы</option>`;
+      yearSelect.addEventListener("change", () => {
+        currentYear = yearSelect.value ? parseInt(yearSelect.value, 10) : null;
+        fillMonthsForYear();
+        renderEvents();
+      });
+      monthSelect.addEventListener("change", () => {
+        currentMonth = monthSelect.value ? parseInt(monthSelect.value, 10) : null;
+        renderEvents();
+      });
+      const nowYear = new Date().getFullYear();
+      if (filtersData.years.includes(nowYear)) {
+        currentYear = nowYear;
+        yearSelect.value = String(nowYear);
+        fillMonthsForYear();
+      }
+    }
+
+    function fillMonthsForYear() {
+      const monthSelect = document.getElementById("sp-month-select");
+      monthSelect.innerHTML = `<option value="">Все месяцы</option>`;
+      if (!currentYear) return;
+      const months = filtersData.months[currentYear] || [];
+      months.forEach(m => {
+        const opt = document.createElement("option");
+        opt.value = String(m);
+        opt.textContent = monthName(m);
+        monthSelect.appendChild(opt);
+      });
+    }
+
+    function filterByYearMonth(events) {
+      return events.filter(ev => {
+        const ym = getYearMonth(ev);
+        if (!ym) return false;
+        if (currentYear && ym.year !== currentYear) return false;
+        if (currentMonth && ym.month !== currentMonth) return false;
+        return true;
+      });
+    }
+
+    function renderEvents() {
+      const upcomingGrid = document.getElementById("sp-upcoming-grid");
+      const pastGrid = document.getElementById("sp-past-grid");
+      const upcomingEmpty = document.getElementById("sp-upcoming-empty");
+      const pastEmpty = document.getElementById("sp-past-empty");
+      const upcomingCount = document.getElementById("sp-upcoming-count");
+      const pastCount = document.getElementById("sp-past-count");
+      upcomingGrid.innerHTML = "";
+      pastGrid.innerHTML = "";
+      const filtered = filterByYearMonth(spectrumEvents.slice());
+      filtered.sort((a, b) => {
+        const da = parseDate(a.dateStart) || new Date(0);
+        const db = parseDate(b.dateStart) || new Date(0);
+        return da.getTime() - db.getTime();
+      });
+      const upcoming = [], past = [];
+      filtered.forEach(ev => { if (isCompleted(ev)) past.push(ev); else upcoming.push(ev); });
+      upcoming.forEach(ev => upcomingGrid.appendChild(createCard(ev, false)));
+      past.forEach(ev => pastGrid.appendChild(createCard(ev, true)));
+      upcomingEmpty.style.display = upcoming.length ? "none" : "block";
+      pastEmpty.style.display = past.length ? "none" : "block";
+      upcomingCount.textContent = upcoming.length ? `(${upcoming.length})` : "";
+      pastCount.textContent = past.length ? `(${past.length})` : "";
+    }
+
+    function createCard(ev, completed) {
+      const card = document.createElement("article");
+      card.className = "sp-card";
+      card.setAttribute("data-id", ev.id);
+      const coverClass = getCoverClass(ev);
+      const dateStr = formatDateRange(ev.dateStart, ev.dateEnd);
+      const bgStyle = ev.imageUrl
+        ? `style="background-image:url('${ev.imageUrl}'); background-size:cover; background-position:center;"`
+        : "";
+      card.innerHTML = `
+        <div class="sp-card-cover ${coverClass} ${completed ? "sp-card-cover-completed" : ""}" ${bgStyle}>
+          <div class="sp-status-pill ${completed ? "sp-status-pill-completed" : ""}">
+            <span class="sp-status-pill-dot"></span>
+            ${completed ? "Завершено" : "Запланировано"}
+          </div>
+          ${completed ? `<div class="sp-card-overlay-label"><span>✔ Завершено</span></div>` : ""}
+        </div>
+        <div class="sp-card-body">
+          <div class="sp-card-title">${ev.title}</div>
+          <div class="sp-tags-row">
+            ${ev.type ? `<span class="sp-tag">${ev.type}</span>` : ""}
+            ${ev.format ? `<span class="sp-tag">${ev.format}</span>` : ""}
+          </div>
+          <div class="sp-datetime-place">
+            ${dateStr ? `<div>${dateStr}</div>` : ""}
+            ${ev.place ? `<div>${ev.place}</div>` : ""}
+          </div>
+          <div class="sp-audience">
+            ${ev.audience ? "Целевая аудитория: " + ev.audience : ""}
+          </div>
+          <div class="sp-card-footer">
+            <span class="sp-speaker">${ev.speaker || ""}</span>
+            <span class="sp-more">Подробнее</span>
+          </div>
+        </div>
+      `;
+      card.addEventListener("click", () => openModal(ev, completed));
+      return card;
+    }
+    // ===== 4. МОДАЛЬНОЕ ОКНО =====
+    let modalBackdrop, modalTitle, modalSub, modalBody, modalClose, modalCloseBtn;
+
+    function initModalRefs() {
+      modalBackdrop = document.getElementById("sp-modal-backdrop");
+      modalTitle = document.getElementById("sp-modal-title");
+      modalSub = document.getElementById("sp-modal-sub");
+      modalBody = document.getElementById("sp-modal-body");
+      modalClose = document.getElementById("sp-modal-close");
+      modalCloseBtn = document.getElementById("sp-modal-close-btn");
+      modalClose.addEventListener("click", closeModal);
+      modalCloseBtn.addEventListener("click", closeModal);
+      modalBackdrop.addEventListener("click", e => { if (e.target === modalBackdrop) closeModal(); });
+      document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+    }
+
+    function openModal(ev, completed) {
+      const dateStr = formatDateRange(ev.dateStart, ev.dateEnd);
+      modalTitle.textContent = ev.title;
+      modalSub.textContent = [ev.type, ev.format, dateStr].filter(Boolean).join(" · ");
+      const statusLabel = completed ? "✔ Завершено" : "● Запланировано";
+      modalBody.innerHTML = `
+        <div class="sp-status-line"><strong>${statusLabel}</strong></div>
+        <div class="sp-modal-section-title">О мероприятии</div>
+        <p>${ev.description || ""}</p>
+        <div class="sp-modal-section-title">Спикер</div>
+        <p>${ev.speaker || "—"}</p>
+        <div class="sp-modal-section-title">Целевая аудитория</div>
+        <p>${ev.audience || "—"}</p>
+        <div class="sp-modal-section-title">Место и время</div>
+        <p>${ev.place || "—"}<br>${dateStr}</p>
+      `;
+      modalBackdrop.classList.add("active");
+      modalBackdrop.setAttribute("aria-hidden", "false");
+    }
+
+    function closeModal() {
+      if (!modalBackdrop) return;
+      modalBackdrop.classList.remove("active");
+      modalBackdrop.setAttribute("aria-hidden", "true");
+    }
+
+    // ===== 5. ЗАПУСК =====
+    createLayout();
+    fillFilters();
+    renderEvents();
+    initModalRefs();
+
+  })();
+</script>
+</body>
+</html>
