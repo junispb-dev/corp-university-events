@@ -668,15 +668,25 @@
       upcomingGrid.innerHTML = "";
       pastGrid.innerHTML = "";
       const filtered = filterByYearMonth(spectrumEvents.slice());
-      filtered.sort((a, b) => {
-        const da = parseDate(a.dateStart) || new Date(0);
-        const db = parseDate(b.dateStart) || new Date(0);
-        return da.getTime() - db.getTime();
-      });
-      const upcoming = [], past = [];
-      filtered.forEach(ev => { if (isCompleted(ev)) past.push(ev); else upcoming.push(ev); });
-      upcoming.forEach(ev => upcomingGrid.appendChild(createCard(ev, false)));
-      past.forEach(ev => pastGrid.appendChild(createCard(ev, true)));
+
+const upcoming = filtered
+  .filter(ev => !isCompleted(ev))
+  .sort((a, b) => {
+    const da = parseDate(a.dateStart) || new Date(0);
+    const db = parseDate(b.dateStart) || new Date(0);
+    return da.getTime() - db.getTime();
+  });
+
+const past = filtered
+  .filter(ev => isCompleted(ev))
+  .sort((a, b) => {
+    const da = parseDate(a.dateEnd || a.dateStart) || new Date(0);
+    const db = parseDate(b.dateEnd || b.dateStart) || new Date(0);
+    return db.getTime() - da.getTime();
+  });
+
+upcoming.forEach(ev => upcomingGrid.appendChild(createCard(ev, false)));
+past.forEach(ev => pastGrid.appendChild(createCard(ev, true)));
       upcomingEmpty.style.display = upcoming.length ? "none" : "block";
       pastEmpty.style.display = past.length ? "none" : "block";
       upcomingCount.textContent = upcoming.length ? `(${upcoming.length})` : "";
